@@ -65,8 +65,9 @@ public final class FastCrystalsPlugin extends JavaPlugin implements Listener {
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
     if (event.getDamager() instanceof Player player && event.getEntity() instanceof EnderCrystal crystal && this.isUsingFastCrystals(player.getUniqueId())) {
-      final PacketContainer destroyEntity = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
-      destroyEntity.getIntegerArrays().write(0, new int[]{crystal.getEntityId()});
+      final PacketContainer destroyEntity = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+      destroyEntity.getIntegers().writeSafely(0, 1);
+      destroyEntity.getIntegerArrays().writeSafely(0, new int[]{crystal.getEntityId()});
 
       ProtocolLibrary.getProtocolManager().sendServerPacket(player, destroyEntity);
 	}
