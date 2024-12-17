@@ -1,6 +1,5 @@
 package xyz.exyron.fastcrystals;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -12,7 +11,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import net.md_5.bungee.api.ChatColor;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EnderCrystal;
@@ -31,13 +29,9 @@ public final class FastCrystalsPlugin extends JavaPlugin implements Listener {
 
   private final Set<UUID> playersUUID = new HashSet<>();
 
-  private static final int BSTATS_ID = 21848;
-
   @Override
   public void onEnable() {
     this.saveDefaultConfig();
-
-    new Metrics(this, BSTATS_ID);
 
     if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
       new FastCrystalsPlaceholder(this).register();
