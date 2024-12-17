@@ -1,11 +1,16 @@
 package xyz.exyron.fastcrystals;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import net.md_5.bungee.api.ChatColor;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -25,7 +30,6 @@ public final class FastCrystalsPlugin extends JavaPlugin implements Listener {
   private final boolean currentStatus = this.configuration.getBoolean("defaultStatus");
 
   private final Set<UUID> playersUUID = new HashSet<>();
-  private CrystalDamage crystalDamage;
 
   private static final int BSTATS_ID = 21848;
 
@@ -38,8 +42,6 @@ public final class FastCrystalsPlugin extends JavaPlugin implements Listener {
     if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
       new FastCrystalsPlaceholder(this).register();
     }
-
-    this.crystalDamage = this.assignCrystalDamageFromServerVersion(Bukkit.getBukkitVersion().split("-")[0]);
 
     String disableMessage = this.colorize(Objects.requireNonNull(this.configuration.getString("disableMessage")));
     String enableMessage = this.colorize(Objects.requireNonNull(this.configuration.getString("enableMessage")));
@@ -69,8 +71,11 @@ public final class FastCrystalsPlugin extends JavaPlugin implements Listener {
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
     if (event.getDamager() instanceof Player player && event.getEntity() instanceof EnderCrystal crystal && this.isUsingFastCrystals(player.getUniqueId())) {
-      this.crystalDamage.handle(player, crystal);
-    }
+      final PacketContainer destroyEntity = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
+      destroyEntity.getIntegerArrays().write(0, new int[]{crystal.getEntityId()});
+
+      ProtocolLibrary.getProtocolManager().sendServerPacket(player, destroyEntity);
+	}
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
@@ -82,19 +87,6 @@ public final class FastCrystalsPlugin extends JavaPlugin implements Listener {
 
   public boolean isUsingFastCrystals(UUID uniqueId) {
     return this.playersUUID.contains(uniqueId);
-  }
-
-  private CrystalDamage assignCrystalDamageFromServerVersion(String version) {
-    return switch (version) {
-      case "1.20.5", "1.20.6" -> new CrystalDamage_v1_20_6();
-
-      default -> {
-        Bukkit.getPluginManager().disablePlugin(this);
-        throw new IllegalStateException(
-            "Plugin is disabling due to unsupported minecraft version (" + version + "). This version of plugin support only 1.20.5+ versions."
-        );
-      }
-    };
   }
 
   private static final Pattern HEX_PATTERN = Pattern.compile("#[A-Fa-f0-9]{6}");
