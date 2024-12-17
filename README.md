@@ -8,7 +8,7 @@ FastCrystals is an addon that enables more dynamic Crystal PvP gameplay. It is a
 
 # Requirements
 
-Currently we support only **1.16.4** to **1.20.4** versions
+Any version that protocol lib supports 
   
 # Command presentation
 
